@@ -51,7 +51,7 @@ const getChat = async (req, res, next) => {
 }
 
 const searchChat = async (req, res, next) => {
-    const { searchValue,} = req.body;
+    const { searchValue, } = req.body;
     const userId = req.user.id;
     if (searchValue) {
         try {
@@ -70,7 +70,7 @@ const searchChat = async (req, res, next) => {
                 return next(createError(400, "User not exist"));
             }
 
-            const senderId = userId; 
+            const senderId = userId;
             const result = [];
 
             for (const user of userExist) {
@@ -91,30 +91,30 @@ const searchChat = async (req, res, next) => {
                 //     members: {
                 //         $all: [
                 //             { $elemMatch: { userId: senderId } },
-                            
+
                 //         ]
                 //     }
                 // }, { _id: 1, chatName:1, members:1, chatPic:1, isGroupChat:1 });
                 // console.log('group',group)
-                
 
-       
+
+
                 if (room) {
                     result.push({
                         chatId: room._id,
-                       receiver : receiverId,
+                        receiver: receiverId,
                         fullName: `${user.firstName} ${user.lastName}`,
                         picture: user.picture
                     });
                 }
-                else{
+                else {
                     result.push({
                         chatId: null,
-                        receiver : receiverId,
+                        receiver: receiverId,
                         fullName: `${user.firstName} ${user.lastName}`,
                         picture: user.picture
                     });
-                    
+
                 }
             }
 
@@ -125,49 +125,178 @@ const searchChat = async (req, res, next) => {
             return next(error);
         }
     }
-    else{
-        
+    else {
+
         try {
-        let allChat = await Chat.find({
-            'members.userId': userId,
-            isGroupChat: false
-        }).populate({
-            path: 'members.userId',
-            select: "_id firstName lastName picture"
-        });
+            let allChat = await Chat.find({
+                'members.userId': userId,
+                isGroupChat: false
+            }).populate({
+                path: 'members.userId',
+                select: "_id firstName lastName picture"
+            });
 
-        if (!allChat) {
-            return next(createError(400, "data not found"));
+            if (!allChat) {
+                return next(createError(400, "data not found"));
+            }
+            // Filter out the provided userId from members
+            allChat = allChat.map(chat => {
+                chat.members = chat.members.filter(member => member.userId._id.toString() !== userId);
+                return chat;
+            });
+
+            const result = allChat.flatMap(chat =>
+                chat.members.map(member => ({
+                    chatId: chat._id,
+                    userId: member.userId._id,
+                    fullName: `${member.userId.firstName} ${member.userId.lastName}`,
+                    picture: member.userId.picture
+                }))
+            );
+            return res.status(200).json({
+                data: result
+            });
         }
-        // Filter out the provided userId from members
-        allChat = allChat.map(chat => {
-            chat.members = chat.members.filter(member => member.userId._id.toString() !== userId);
-            return chat;
-        });
 
-        const result = allChat.flatMap(chat => 
-            chat.members.map(member => ({
-                chatId: chat._id,
-                userId: member.userId._id,
-                fullName: `${member.userId.firstName} ${member.userId.lastName}`,
-                picture: member.userId.picture
-            }))
-        );
-        return res.status(200).json({
-            data: result
-        });
-    } 
-        
         catch (error) {
             next(error)
         }
     }
 
+}
+
+const searchUser = async (req, res, next) => {
+    const { searchValue, } = req.body;
+    const userId = req.user.id;
+    if (searchValue) {
+        try {
+            // Search for users based on the provided search value
+            const userExist = await User.find({
+                $or: [
+                    { firstName: { $regex: `^${searchValue}`, $options: 'i' } }, // Prefix search
+                    { firstName: { $regex: `${searchValue}$`, $options: 'i' } }, // Suffix search
+                    { lastName: { $regex: `^${searchValue}`, $options: 'i' } }, // Prefix search
+                    { lastName: { $regex: `${searchValue}$`, $options: 'i' } },// Suffix search
+                    { userName: { $regex: `^${searchValue}`, $options: 'i' } }
+                ]
+            }, { firstName: 1, lastName: 1, picture: 1 });
+
+            if (!userExist || userExist.length === 0) {
+                return next(createError(400, "User not exist"));
+            }
+
+            const senderId = userId;
+            const result = [];
+
+            for (const user of userExist) {
+                const receiverId = user._id.toString();
+
+                // Find the chat room where both sender and receiver are members
+                const room = await Chat.findOne({
+                    isGroupChat: false,
+                    members: {
+                        $all: [
+                            { $elemMatch: { userId: senderId } },
+                            { $elemMatch: { userId: receiverId } }
+                        ]
+                    }
+                }, { _id: 1 });
+                // const group = await Chat.find({
+                //     isGroupChat: true,
+                //     members: {
+                //         $all: [
+                //             { $elemMatch: { userId: senderId } },
+
+                //         ]
+                //     }
+                // }, { _id: 1, chatName:1, members:1, chatPic:1, isGroupChat:1 });
+                // console.log('group',group)
+
+
+
+                if (room) {
+                    result.push({
+                        chatId: room._id,
+                        receiver: receiverId,
+                        fullName: `${user.firstName} ${user.lastName}`,
+                        picture: user.picture
+                    });
+                }
+                else {
+                    result.push({
+                        chatId: null,
+                        receiver: receiverId,
+                        fullName: `${user.firstName} ${user.lastName}`,
+                        picture: user.picture
+                    });
+
+                }
+            }
+
+            return res.status(200).json({
+                data: result
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+    else {
+
+        try {
+            let allChat = await Chat.find({
+                'members.userId': userId,
+                isGroupChat: false
+            }).populate({
+                path: 'members.userId',
+                select: "_id firstName lastName picture"
+            });
+
+            if (!allChat) {
+                return next(createError(400, "data not found"));
+            }
+            // Filter out the provided userId from members
+            allChat = allChat.map(chat => {
+                chat.members = chat.members.filter(member => member.userId._id.toString() !== userId);
+                return chat;
+            });
+
+            const result = allChat.flatMap(chat =>
+                chat.members.map(member => ({
+                    chatId: chat._id,
+                    userId: member.userId._id,
+                    fullName: `${member.userId.firstName} ${member.userId.lastName}`,
+                    picture: member.userId.picture
+                }))
+            );
+            return res.status(200).json({
+                data: result
+            });
+        }
+
+        catch (error) {
+            next(error)
+        }
     }
 
-const addGroup = async (req, res, next) => { 
+}
+
+const addGroup = async (req, res, next) => {
     try {
-        const newGroup = await Chat.create(req.body)
+        console.log("req.body", req.body)
+        const userId = req.user.id;
+        const { groupData, addImage } = req.body;
+        const membersData = []
+        addImage.map((item, index) => {
+                membersData.push({ userId: item._id, isAdmin: false })
+        })
+        membersData.push({ userId: userId, isAdmin: true })
+        const newGroup = await Chat.create({
+            chatName: groupData.chat_name,
+            isGroupChat: true,
+            chatPic: "temp.jpg",
+            members: membersData,
+            latestMessage: new ObjectId('6645f9949de2321456dc28d3')
+        })
         const result = await newGroup.save()
         if (!result) {
             return next(createError(500, "data is not added"))
@@ -233,4 +362,4 @@ const getUserWithChatId = async (req, res, next) => {
 
 
 
-export { addChat, getChat, searchChat, addGroup, getAllGroup, getUserWithChatId }
+export { addChat, getChat, searchChat, searchUser, addGroup, getAllGroup, getUserWithChatId }
