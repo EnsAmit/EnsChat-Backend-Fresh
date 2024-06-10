@@ -1,5 +1,7 @@
 import Message from '../../models/message/message.model.js'
-import {createError} from '../../helpers/common/backend.functions.js'
+import { createError } from '../../helpers/common/backend.functions.js'
+import storage from '../../helpers/init_firebase.js';
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 const addMessage = async (req, res, next) => {
     const { sender, content, chat } = req.body;
@@ -33,11 +35,11 @@ const getMessage = async (req, res, next) => {
         //     select: 'firstName lastName' // Specify the fields to populate
         // })
         // .exec();
-        
+
         if (!result) {
             return next(createError(500, 'Internal server error: Failed to save data'))
         }
-      
+
         return res.status(200).json({ data: result })
     }
     catch (error) {
@@ -78,7 +80,7 @@ const uploadFile = async (req, res, next) => {
 
     console.log(req.file, "fileName")
     try {
-       
+
         return res.status(200).json({ fileName: req.file.filename, messageType: messageType })
     }
     catch (error) {
@@ -87,4 +89,34 @@ const uploadFile = async (req, res, next) => {
 
 }
 
-export { addMessage, getMessage, uploadFile }
+
+// Function to upload file to Firebase Storage
+const uploadFile1 = (file) => {
+    const storageRef = ref(storage, `fir-rtc-8e24b.appspot.com/${file.name}`);
+    return uploadBytes(storageRef, file)
+        .then((snapshot) => {
+            console.log('File uploaded successfully');
+            // Return download URL or any other relevant data
+            return snapshot.ref.getDownloadURL();
+        })
+        .catch((error) => {
+            console.error('Error uploading file:', error);
+            throw error;
+        });
+};
+
+const uploadFileFirebase = async (req, res) => {
+
+    const file = req.files.file; // Assuming you're using multer for file uploads
+    uploadFile1(file)
+        .then((downloadURL) => {
+            console.log('Download URL:', downloadURL);
+            // Handle success
+        })
+        .catch((error) => {
+            // Handle error
+        });
+
+}
+
+export { addMessage, getMessage, uploadFile, uploadFileFirebase }
