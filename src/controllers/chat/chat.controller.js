@@ -167,7 +167,7 @@ const searchChat = async (req, res, next) => {
         const group = groups.map(groupChat => ({
             isGroupChat: groupChat.isGroupChat,
             chatId: groupChat._id,
-            receiver: groupChat.members,
+            member: groupChat.members,
             fullName: groupChat.chatName,
             picture: groupChat.picture
         }));

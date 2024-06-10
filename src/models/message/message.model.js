@@ -1,3 +1,4 @@
+import { Timestamp } from 'bson';
 import mongoose from 'mongoose'
 
 const messageSchema = mongoose.Schema({
@@ -23,9 +24,15 @@ const messageSchema = mongoose.Schema({
     },
     readBy:[
         {type:mongoose.Schema.Types.ObjectId,ref:"User"}
-    ]
+    ],
+    createdAt:{
+        type:Date,
+        default:Date.now()
 
-})
+    }
+
+}
+)
 
 const Message = mongoose.model('Message',messageSchema)
 export default Message;

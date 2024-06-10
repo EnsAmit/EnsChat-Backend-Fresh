@@ -23,22 +23,44 @@ const addMessage = async (req, res, next) => {
 
 const getMessage = async (req, res, next) => {
     const { chat } = req.body;
+    const userId = req.user.id;
     if (!chat || chat == '') {
         return next(createError(400, "plz provide the required feild"))
     }
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      };
     try {
-        const result = await Message.find(req.body)
-        // .populate({
-        //     path: 'sender',
-        //     select: 'firstName lastName' // Specify the fields to populate
-        // })
-        // .exec();
-        
-        if (!result) {
+        const messagesResponse = await Message.find(req.body)
+        .populate({
+            path: 'sender',
+            select: 'firstName lastName picture'
+        })
+        .exec();
+       
+        const transformedMessages = messagesResponse.map(message => {
+            return {
+              _id: message._id,
+              chat: message.chat,
+              content: message.content,
+              fileName: message.fileName,
+              messageType: message.messageType,
+              createdAt : formatDate(message.createdAt),
+              sender: message.sender._id,
+              memberName: userId === message.sender._id.toString() ? null : `${message.sender.firstName} ${message.sender.lastName}`,
+              picture: userId === message.sender._id.toString() ? null : message.sender.picture
+            };
+          });
+        console.log("messages====>",transformedMessages)
+        if (!messagesResponse) {
             return next(createError(500, 'Internal server error: Failed to save data'))
         }
       
-        return res.status(200).json({ data: result })
+        return res.status(200).json({ data: transformedMessages })
     }
     catch (error) {
         return next(error)
