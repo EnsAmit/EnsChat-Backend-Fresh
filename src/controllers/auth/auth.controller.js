@@ -90,6 +90,7 @@ const updateUser = async (req, res, next) => {
     try {
         
         const { ...update } = req.body;
+        //getting user Id
         const userId = req.user.id;
 
         const userExist = await User.findById(userId);
