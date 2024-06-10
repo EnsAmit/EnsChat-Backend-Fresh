@@ -3,15 +3,15 @@ import { v1 } from './src/helpers/common/route_versions/v1.js';
 import {dbConnect} from './src/helpers/common/init_mongodb.js'
 import { ensModuleBackendApp, httpServer } from './src/helpers/common/init_socket.js'
 import cors from 'cors'
-import { fileURLToPath } from 'url';
-import path from 'path'
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// import { fileURLToPath } from 'url';
+// import path from 'path'
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 const PORT = 4500;
 
 dbConnect()
 ensModuleBackendApp.use(express.json())
-ensModuleBackendApp.use('/images', express.static(path.join(__dirname, './src/public/profile_images')));
+// ensModuleBackendApp.use('/images', express.static(path.join(__dirname, './src/public/profile_images')));
 ensModuleBackendApp.use(cors());
 
 //error middleware

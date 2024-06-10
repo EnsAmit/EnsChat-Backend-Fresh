@@ -69,7 +69,7 @@ const loginUser = async (req, res, next) => {
                     {
                         error: false,
                         data: userExist,
-                        message: "Admin Login Successfully...!",
+                        message: "Login Successfully...!",
                         token
                     })
         }
@@ -90,6 +90,7 @@ const updateUser = async (req, res, next) => {
     try {
         
         const { ...update } = req.body;
+        //getting user Id
         const userId = req.user.id;
 
         const userExist = await User.findById(userId);
