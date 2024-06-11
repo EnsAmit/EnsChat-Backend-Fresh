@@ -8,8 +8,8 @@ appChatDetailsRouterV1.route('/addChat').post(verifyToken,appChatDetailsControll
 appChatDetailsRouterV1.route('/getChat').post(appChatDetailsController.getChat)
 appChatDetailsRouterV1.route('/searchChat').post(verifyToken,appChatDetailsController.searchChat)
 appChatDetailsRouterV1.route('/addGroup').post(appChatDetailsController.addGroup)
-appChatDetailsRouterV1.route('/searchUser').post(verifyToken,appChatDetailsController.searchUser)
 appChatDetailsRouterV1.route('/getgroup').post(appChatDetailsController.getAllGroup)
+appChatDetailsRouterV1.route('/getMembers').post(appChatDetailsController.getGroupMember)
 appChatDetailsRouterV1.route('/userWithChatId').post(appChatDetailsController.getUserWithChatId)
 
 export { appChatDetailsRouterV1 };
