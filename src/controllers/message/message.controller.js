@@ -1,7 +1,5 @@
 import Message from '../../models/message/message.model.js'
-import { createError } from '../../helpers/common/backend.functions.js'
-import storage from '../../helpers/init_firebase.js';
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import {createError} from '../../helpers/common/backend.functions.js'
 
 const addMessage = async (req, res, next) => {
     const { sender, content, chat } = req.body;
@@ -25,22 +23,44 @@ const addMessage = async (req, res, next) => {
 
 const getMessage = async (req, res, next) => {
     const { chat } = req.body;
+    const userId = req.user.id;
     if (!chat || chat == '') {
         return next(createError(400, "plz provide the required feild"))
     }
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      };
     try {
-        const result = await Message.find(req.body)
-        // .populate({
-        //     path: 'sender',
-        //     select: 'firstName lastName' // Specify the fields to populate
-        // })
-        // .exec();
-
-        if (!result) {
+        const messagesResponse = await Message.find(req.body)
+        .populate({
+            path: 'sender',
+            select: 'firstName lastName picture'
+        })
+        .exec();
+       
+        const transformedMessages = messagesResponse.map(message => {
+            return {
+              _id: message._id,
+              chat: message.chat,
+              content: message.content,
+              fileName: message.fileName,
+              messageType: message.messageType,
+              createdAt : formatDate(message.createdAt),
+              sender: message.sender._id,
+              memberName: userId === message.sender._id.toString() ? null : `${message.sender.firstName} ${message.sender.lastName}`,
+              picture: userId === message.sender._id.toString() ? null : message.sender.picture
+            };
+          });
+        console.log("messages====>",transformedMessages)
+        if (!messagesResponse) {
             return next(createError(500, 'Internal server error: Failed to save data'))
         }
-
-        return res.status(200).json({ data: result })
+      
+        return res.status(200).json({ data: transformedMessages })
     }
     catch (error) {
         return next(error)
@@ -80,7 +100,7 @@ const uploadFile = async (req, res, next) => {
 
     console.log(req.file, "fileName")
     try {
-
+       
         return res.status(200).json({ fileName: req.file.filename, messageType: messageType })
     }
     catch (error) {
@@ -89,34 +109,4 @@ const uploadFile = async (req, res, next) => {
 
 }
 
-
-// Function to upload file to Firebase Storage
-const uploadFile1 = (file) => {
-    const storageRef = ref(storage, `fir-rtc-8e24b.appspot.com/${file.name}`);
-    return uploadBytes(storageRef, file)
-        .then((snapshot) => {
-            console.log('File uploaded successfully');
-            // Return download URL or any other relevant data
-            return snapshot.ref.getDownloadURL();
-        })
-        .catch((error) => {
-            console.error('Error uploading file:', error);
-            throw error;
-        });
-};
-
-const uploadFileFirebase = async (req, res) => {
-
-    const file = req.files.file; // Assuming you're using multer for file uploads
-    uploadFile1(file)
-        .then((downloadURL) => {
-            console.log('Download URL:', downloadURL);
-            // Handle success
-        })
-        .catch((error) => {
-            // Handle error
-        });
-
-}
-
-export { addMessage, getMessage, uploadFile, uploadFileFirebase }
+export { addMessage, getMessage, uploadFile }

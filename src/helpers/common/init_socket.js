@@ -74,8 +74,16 @@ io.on('connect', (socket) => {
       // };
       // console.log("selectedMessage",selectedMessage)
       const room = chatData.chat;
+      console.log('room',room)
+      
       console.log('selectedMessage',selectedMessage)
-      io.emit('message received', selectedMessage);
+
+    // const  chatId=['664eccac02d9362769cf23aa','6651c59101ac02e581f44ad0']
+    chatData.members.forEach((id)=>{
+      socket.in(id).emit('message received', selectedMessage);
+
+    })
+      // io.to(room).emit('message received',()=>{console.log('event is fire')}, selectedMessage);
 
     } catch (error) {
       console.error('Error saving message:', error);
