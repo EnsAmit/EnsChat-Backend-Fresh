@@ -1,5 +1,6 @@
 import Message from '../../models/message/message.model.js'
 import {createError} from '../../helpers/common/backend.functions.js'
+import {createError} from '../../helpers/common/backend.functions.js'
 
 const addMessage = async (req, res, next) => {
     const { sender, content, chat } = req.body;
@@ -78,6 +79,8 @@ const getMessage = async (req, res, next) => {
         }
       
         return res.status(200).json({ data: transformedMessages })
+      
+        return res.status(200).json({ data: transformedMessages })
     }
     catch (error) {
         return next(error)
@@ -141,6 +144,7 @@ const uploadFile = async (req, res, next) => {
 
     console.log(req.file, "fileName")
     try {
+       
        
         return res.status(200).json({ fileName: req.file.filename, messageType: messageType })
     }
