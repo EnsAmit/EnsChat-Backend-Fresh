@@ -2,7 +2,6 @@ import {Router} from 'express'
 import * as appMessageDetailsController from '../../controllers/message/message.controller.js'
 import upload from '../../middlewares/files/upload_file.middleware.js'
 import {verifyToken} from  '../../middlewares/files/verifyToken.js'
-import {verifyToken} from  '../../middlewares/files/verifyToken.js'
 
 const appMessageDetailsRouterV1 = Router()
 
