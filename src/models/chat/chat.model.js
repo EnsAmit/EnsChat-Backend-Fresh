@@ -20,7 +20,12 @@ const chatSchema = mongoose.Schema({
         isAdmin: {
             type: Boolean,
             default: false // Default value for isAdmin
+        },
+        unseenMessage : {
+            type : Number,
+            default : 0
         }
+    
     }],
     latestMessage: {
         type: mongoose.Schema.Types.ObjectId,
@@ -32,8 +37,8 @@ const chatSchema = mongoose.Schema({
     isDeleted: {
         type: Boolean,
         default: false
-    }
-
+    },
+   
 }, {
     timestamps: true
 }
