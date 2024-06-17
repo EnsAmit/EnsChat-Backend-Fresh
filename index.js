@@ -37,6 +37,13 @@ ensModuleBackendApp.get('/', (req, res) => {
     res.send('hiiii')
 })
 
+ensModuleBackendApp.post('/shiprocket-webhook', (req, res) => {
+    const trackingData = req.body;
+    console.log('Tracking update received:', trackingData);
+    // Process the tracking data here
+    res.status(200).send('Webhook received');
+});
+
 
 httpServer.listen(PORT, () => {
     console.log(`Server is runnning at Port : ${PORT}`);
