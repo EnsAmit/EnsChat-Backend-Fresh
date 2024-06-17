@@ -38,7 +38,6 @@ ensModuleBackendApp.get('/', (req, res) => {
 })
 
 
-// Start the server on port 3000
 httpServer.listen(PORT, () => {
     console.log(`Server is runnning at Port : ${PORT}`);
 });

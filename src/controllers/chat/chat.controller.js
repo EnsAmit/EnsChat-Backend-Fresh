@@ -315,7 +315,8 @@ const getAllGroup = async (req, res, next) => {
 }
 
 const getUserWithChatId = async (req, res, next) => {
-    const { userId } = req.body;
+    // const { userId } = req.body;
+    const userId = req.user.id;
 
     if (!userId) {
         return next(400, "user not exist")
@@ -325,7 +326,7 @@ const getUserWithChatId = async (req, res, next) => {
             {
                 "members": {
                     "$elemMatch": {
-                        "userId": "664eccac02d9362769cf23aa"
+                        "userId": userId
                     }
                 }
             },

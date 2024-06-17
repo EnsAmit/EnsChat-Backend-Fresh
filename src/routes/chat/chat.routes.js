@@ -11,7 +11,7 @@ appChatDetailsRouterV1.route('/searchChat').post(verifyToken,appChatDetailsContr
 appChatDetailsRouterV1.route('/addGroup').post(appChatDetailsController.addGroup)
 appChatDetailsRouterV1.route('/getgroup').post(appChatDetailsController.getAllGroup)
 appChatDetailsRouterV1.route('/getMembers').post(appChatDetailsController.getGroupMember)
-appChatDetailsRouterV1.route('/userWithChatId').post(appChatDetailsController.getUserWithChatId)
+appChatDetailsRouterV1.route('/userWithChatId').post(verifyToken, appChatDetailsController.getUserWithChatId)
 appChatDetailsRouterV1.route('/groupUpdate').post(appChatDetailsController.updateGroup)
 appChatDetailsRouterV1.route('/updateGroupProfile').post(upload(),appChatDetailsController.updateGroupPic)
 

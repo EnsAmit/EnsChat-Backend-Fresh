@@ -104,6 +104,7 @@ io.on('connect', (socket) => {
     const { chatId, room } = data;
     emailToSocketIdMap.set(chatId, socket.id);
     socketidToEmailMap.set(socket.id, chatId);
+    io.emit("go:call", {chatId, room});
     io.to(room).emit("user:joined", { chatId, id: socket.id });
     socket.join(room);
     io.to(socket.id).emit("room:join", data);
