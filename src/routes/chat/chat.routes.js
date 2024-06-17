@@ -13,6 +13,8 @@ appChatDetailsRouterV1.route('/getgroup').post(appChatDetailsController.getAllGr
 appChatDetailsRouterV1.route('/getMembers').post(appChatDetailsController.getGroupMember)
 appChatDetailsRouterV1.route('/userWithChatId').post(appChatDetailsController.getUserWithChatId)
 appChatDetailsRouterV1.route('/groupUpdate').post(appChatDetailsController.updateGroup)
+appChatDetailsRouterV1.route('/getGroupInfo').post(appChatDetailsController.getGroupInfo)
 appChatDetailsRouterV1.route('/updateGroupProfile').post(upload(),appChatDetailsController.updateGroupPic)
+appChatDetailsRouterV1.route('/resetUnseenMessage').post(appChatDetailsController.resetUnseenMessages)
 
 export { appChatDetailsRouterV1 };
