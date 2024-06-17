@@ -50,35 +50,71 @@ io.on('connect', (socket) => {
         const savedChat = await newChat.save();
         chatData.chat =  savedChat._id;
       }
-      console.log("after daving chatData",chatData)
+      // console.log("after daving chatData",chatData)
       const newMessage = new Message(chatData);
       const savedMessage = await newMessage.save();
 
+    //   const updatedChat = await Chat.findOneAndUpdate(
+    //     { _id: chatData.chat },
+    //     { $set: { latestMessage: savedMessage._id, pendingMessage: true } },
+    //     { new: true }  // Return the updated document
+    // );
+     // Increment unseen message count for all members except the sender
+     const senderId = chatData.sender;
+     const chatId = chatData.chat;
+     const updateResult = await Chat.updateMany(
+      { _id: chatId },
+      { $inc: { "members.$[elem].unseenMessage": 1 } },
+      { arrayFilters: [{ "elem.userId": { $ne: senderId } }] }
+    );
+
+    // Logging update result for debugging
+    console.log("Update Result: ", updateResult);
+
+    // Retrieve the updated chat document to get the latest unseenMessage counts
+    const updatedChat = await Chat.findById(chatId);
+
+    // Logging updated chat for debugging
+    console.log("Updated Chat: ", updatedChat);
+
+      
+      
+      const formatDate = (dateString) => {
+        // Create a date object from the provided date string
+        const date = new Date(dateString);
+    
+        // Get the local hours and minutes
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+        // Determine AM/PM and adjust hours
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Adjust for 0 hour (midnight)
+    
+        // Format hours with leading zero if needed
+        const formattedHours = String(hours).padStart(2, '0');
+    
+        // Return the formatted time string
+        return `${formattedHours}:${minutes} ${ampm}`;
+    };
+      
       const selectedMessage = {
         sender: savedMessage.sender,
         messageType: savedMessage.messageType,
         fileName: savedMessage.fileName,
         chat: savedMessage.chat,
-        content: savedMessage.content
+        content: savedMessage.content,
+        // unseenMsge : updatedChat.
+        messageDate : formatDate(savedMessage.createdAt )
       };
    
-      // console.log('chatData',chatData)
-      // const newMessage = new Message(chatData);
-      // const savedMessage = await newMessage.save();
-
       
-      // const selectedMessage = {
-      //   sender: savedMessage.sender,
-      //   chat: savedMessage.chat,
-      //   content: savedMessage.content
-      // };
-      // console.log("selectedMessage",selectedMessage)
       const room = chatData.chat;
-      console.log('room',room)
+      // console.log('room',room)
       
       console.log('selectedMessage',selectedMessage)
 
-    // const  chatId=['664eccac02d9362769cf23aa','6651c59101ac02e581f44ad0']
     chatData.members.forEach((id)=>{
       socket.in(id).emit('message received', selectedMessage);
 
