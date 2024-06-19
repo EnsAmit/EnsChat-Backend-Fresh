@@ -367,9 +367,9 @@ const searchChat = async (req, res, next) => {
             ];
         
             // Sort results by last message creation date
-            result.sort((a, b) => {
-                return new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt);
-            });
+            // result.sort((a, b) => {
+            //     return new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt);
+            // });
         
             // Return the result
             return res.status(200).json({
@@ -383,6 +383,40 @@ const searchChat = async (req, res, next) => {
     }
 
 }
+
+const searchUser = async (req, res, next) => {
+    const { searchValue, } = req.body;
+    const userId = req.user.id;
+    console.log(searchValue, "searchValue", userId, "dflsf")
+    try {
+        // Search for users based on the provided search value
+        const userExist = await User.find({
+            _id: { $ne: userId }, // Exclude the user with the specific userId
+            $or: [
+                { firstName: { $regex: `^${searchValue}`, $options: 'i' } }, // Prefix search
+                { firstName: { $regex: `${searchValue}$`, $options: 'i' } }, // Suffix search
+                { lastName: { $regex: `^${searchValue}`, $options: 'i' } }, // Prefix search
+                { lastName: { $regex: `${searchValue}$`, $options: 'i' } },  // Suffix search
+                { userName: { $regex: `^${searchValue}`, $options: 'i' } }
+            ]
+        }, { firstName: 1, lastName: 1, picture: 1 });
+        console.log(userExist, "userExist")
+
+        if (!userExist || userExist.length === 0) {
+            return next(createError(400, "User not exist"));
+        }
+
+        // const result = [];
+
+        return res.status(200).json({
+            data: userExist
+        });
+    } catch (error) {
+        console.log(error, "searchUser Error")
+        return next(error);
+    }
+}
+
  const resetUnseenMessages = async (req, res, next) => {
     const { userId, chatId } = req.body;
 
@@ -412,7 +446,21 @@ const searchChat = async (req, res, next) => {
 
 const addGroup = async (req, res, next) => {
     try {
-        const newGroup = await Chat.create(req.body)
+        console.log("req.body", req.body)
+        const userId = req.user.id;
+        const { groupData, addImage } = req.body;
+        const membersData = []
+        addImage.map((item, index) => {
+                membersData.push({ userId: item._id, isAdmin: false })
+        })
+        membersData.push({ userId: userId, isAdmin: true })
+        const newGroup = await Chat.create({
+            chatName: groupData.chat_name,
+            isGroupChat: true,
+            chatPic: "temp.jpg",
+            members: membersData,
+            latestMessage: new ObjectId('6645f9949de2321456dc28d3')
+        })
         const result = await newGroup.save()
         if (!result) {
             return next(createError(500, "data is not added"))
@@ -596,4 +644,4 @@ const getUserWithChatId = async (req, res, next) => {
 
 
 
-export { addChat, getChat, searchChat, addGroup, getAllGroup, getUserWithChatId,resetUnseenMessages, getGroupMember, updateGroup, updateGroupPic,getGroupInfo  }
+export { addChat, getChat, searchChat, searchUser, addGroup, getAllGroup, getUserWithChatId,resetUnseenMessages, getGroupMember, updateGroup, updateGroupPic,getGroupInfo  }
